@@ -1,24 +1,33 @@
-export default function Navbar({ currentPage, setCurrentPage }) {
-  const pages = ["一覧", "統計"];
+import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
+export default function Navbar({ currentPage, setCurrentPage }) {
   return (
-    <div style={{ display: "flex", gap: "12px", height: "48px", alignItems: "center" }}>
-      {pages.map((p) => (
-        <button
-          key={p}
-          onClick={() => setCurrentPage(p)}
-          style={{
-            padding: "6px 12px",
-            background: currentPage === p ? "#4CAF50" : "#fff",
-            color: currentPage === p ? "#fff" : "#000",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            cursor: "pointer"
-          }}
-        >
-          {p}
-        </button>
-      ))}
-    </div>
+    <AppBar position="sticky" color="primary">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+          📚 読書ログ
+        </Typography>
+        <Box>
+          <Button 
+            color="inherit" 
+            startIcon={<LibraryBooksIcon />}
+            onClick={() => setCurrentPage("一覧")}
+            sx={{ borderBottom: currentPage === "一覧" ? "2px solid white" : "none" }}
+          >
+            一覧
+          </Button>
+          <Button 
+            color="inherit" 
+            startIcon={<BarChartIcon />}
+            onClick={() => setCurrentPage("統計")}
+            sx={{ borderBottom: currentPage === "統計" ? "2px solid white" : "none" }}
+          >
+            統計
+          </Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }
