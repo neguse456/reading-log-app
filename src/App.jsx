@@ -6,16 +6,16 @@ import BookForm from "./components/BookForm";
 import BookList from "./components/BookList";
 import Statistics from "./components/Statistics";
 
-// UIライブラリ (MUI)
+// UIライブラリ 
 import { Container, Box, Snackbar, Alert, CircularProgress, Typography } from "@mui/material";
 
 export default function App() {
   const [page, setPage] = useState("一覧");
   const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true); // 読み込み中の状態
+  const [loading, setLoading] = useState(true); 
   const [notification, setNotification] = useState({ open: false, message: "", severity: "success" }); // 通知設定
 
-  // ▼ Firebaseからデータを取得
+  //Firebaseからデータを取得
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -34,12 +34,12 @@ export default function App() {
     fetchBooks();
   }, []);
 
-  // ▼ 通知を表示するヘルパー関数
+  //通知を表示するヘルパー関数
   const showNotification = (message, severity = "success") => {
     setNotification({ open: true, message, severity });
   };
 
-  // ▼ 追加機能
+  //追加機能
   const handleAddBook = async (newBook) => {
     try {
       const docRef = await addDoc(collection(db, "books"), newBook);
@@ -50,7 +50,7 @@ export default function App() {
     }
   };
 
-  // ▼ 削除機能
+  //削除機能
   const handleDeleteBook = async (id) => {
     try {
       await deleteDoc(doc(db, "books", id));
@@ -61,7 +61,7 @@ export default function App() {
     }
   };
 
-  // ▼ 更新機能
+  //更新機能
   const handleUpdateBook = async (id, updatedBook) => {
     try {
       await updateDoc(doc(db, "books", id), updatedBook);
@@ -77,7 +77,7 @@ export default function App() {
       <Navbar currentPage={page} setCurrentPage={setPage} />
 
       <Container maxWidth="md" sx={{ mt: 4 }}>
-        {/* ローディング表示 */}
+        
         {loading ? (
           <Box display="flex" justifyContent="center" mt={10}>
             <CircularProgress />
@@ -99,7 +99,7 @@ export default function App() {
         )}
       </Container>
 
-      {/* 操作完了時の通知ポップアップ */}
+
       <Snackbar 
         open={notification.open} 
         autoHideDuration={4000} 

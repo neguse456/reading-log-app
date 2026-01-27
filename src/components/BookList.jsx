@@ -67,7 +67,7 @@ export default function BookList({ books, onDelete, onUpdate }) {
         {filteredBooks.map((b) => (
           <Grid item xs={12} key={b.id}>
             <Card elevation={2} sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' } }}>
-              {/* ▼ 画像がある場合は左側に表示 */}
+            
               {b.thumbnail && (
                 <CardMedia
                   component="img"
@@ -80,7 +80,7 @@ export default function BookList({ books, onDelete, onUpdate }) {
               <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                 <CardContent sx={{ flex: '1 0 auto' }}>
                   {editId === b.id ? (
-                    // ===== 編集モード (画像編集は省略) =====
+                    // ===== 編集モード=====
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={8}>
                         <TextField fullWidth label="タイトル" value={editData.title} onChange={(e) => setEditData({...editData, title: e.target.value})} />

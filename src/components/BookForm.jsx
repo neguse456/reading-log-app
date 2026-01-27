@@ -18,29 +18,29 @@ export default function BookForm({ onAdd }) {
   const [genre, setGenre] = useState(GENRES[0]);
   const [rating, setRating] = useState(3);
   const [memo, setMemo] = useState("");
-  // 画像URLを保存するStateを追加
+  //画像URLを保存するStateを追加
   const [thumbnail, setThumbnail] = useState("");
 
-  // ▼ Google Books API で本を検索する関数
+  //Google Books API で本を検索する関数
   const handleSearch = async () => {
     if (!title) return alert("タイトルを入力してから検索してください");
 
     try {
-      // APIを叩く（APIキー不要の公開エンドポイント）
+      //API
       const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${title}`);
       const data = await res.json();
 
       if (data.items && data.items.length > 0) {
         const bookInfo = data.items[0].volumeInfo;
         
-        // 取得したデータでフォームを埋める
-        setTitle(bookInfo.title); // 正確なタイトルに上書き
+        //取得したデータでフォームを埋める
+        setTitle(bookInfo.title); //正確なタイトルに上書き
         
-        // 著者をメモ欄に追記
+        //著者をメモ欄に追記
         const authors = bookInfo.authors ? `著者: ${bookInfo.authors.join(", ")}\n` : "";
         setMemo(authors + memo);
 
-        // 画像URLを取得（httpをhttpsに変換）
+        //画像URLを取得
         if (bookInfo.imageLinks && bookInfo.imageLinks.thumbnail) {
           setThumbnail(bookInfo.imageLinks.thumbnail.replace("http://", "https://"));
         }
@@ -56,10 +56,10 @@ export default function BookForm({ onAdd }) {
   const handleSubmit = () => {
     if (!title || !date) return alert("タイトルと日付は必須です");
     
-    // thumbnail もデータとして渡す
+    //thumbnailもデータとして渡す
     onAdd({ title, date, genre, rating, memo, thumbnail });
 
-    // フォームリセット
+    //フォームリセット
     setTitle("");
     setDate("");
     setGenre(GENRES[0]);
@@ -81,7 +81,7 @@ export default function BookForm({ onAdd }) {
             label="タイトル（入力して検索🔍）" 
             value={title} 
             onChange={(e) => setTitle(e.target.value)}
-            // ▼ 検索ボタンを入力欄の中に埋め込む設定
+            //検索ボタンを入力欄の中に埋め込む設定
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -92,7 +92,7 @@ export default function BookForm({ onAdd }) {
               ),
             }}
           />
-          {/* 画像が見つかったらプレビューを表示 */}
+          
           {thumbnail && (
             <Box mt={1} display="flex" alignItems="center" gap={1}>
               <Avatar src={thumbnail} variant="rounded" sx={{ width: 40, height: 60 }} />

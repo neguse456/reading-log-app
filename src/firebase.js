@@ -11,7 +11,7 @@ const firebaseConfig = {
   measurementId: "G-HTFQ1SM90Z"
 };
 
-// Firebaseアプリの初期化
+
 const app = initializeApp(firebaseConfig);
-// データベース(Firestore)のインスタンスをエクスポート
+
 export const db = getFirestore(app);

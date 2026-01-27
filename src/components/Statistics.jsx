@@ -15,7 +15,6 @@ export default function Statistics({ books }) {
     );
   }
 
-  // 集計ロジック（変更なし）
   const monthlyCount = {};
   books.forEach((book) => {
     const month = book.date.slice(0, 7);
