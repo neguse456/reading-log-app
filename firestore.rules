@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 本人だけが自分の本を読み書きできる
+    match /users/{uid}/books/{bookId} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 300
+        && request.resource.data.status in ['読みたい', '読書中', '読了'];
+    }
+    // それ以外（旧 /books コレクションを含む）はすべて拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
