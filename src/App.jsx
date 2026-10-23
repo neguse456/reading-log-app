@@ -1,108 +1,97 @@
-import { useState, useEffect } from "react";
-import { db } from "./firebase";
-import { collection, getDocs, addDoc, deleteDoc, updateDoc, doc } from "firebase/firestore";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "./firebase";
+import useBooks from "./hooks/useBooks";
 import Navbar from "./components/Navbar";
 import BookForm from "./components/BookForm";
 import BookList from "./components/BookList";
-import Statistics from "./components/Statistics";
+import Login from "./components/Login";
 
-// UIライブラリ 
-import { Container, Box, Snackbar, Alert, CircularProgress, Typography } from "@mui/material";
+// グラフ（chart.js）は統計ページを開いたときに読み込む
+const Statistics = lazy(() => import("./components/Statistics"));
+
+// UIライブラリ
+import { Container, Box, Snackbar, Alert, CircularProgress } from "@mui/material";
+
+function Loading() {
+  return (
+    <Box display="flex" justifyContent="center" mt={10}>
+      <CircularProgress />
+    </Box>
+  );
+}
 
 export default function App() {
-  const [page, setPage] = useState("一覧");
-  const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true); 
-  const [notification, setNotification] = useState({ open: false, message: "", severity: "success" }); // 通知設定
+  // undefined: 確認中 / null: 未ログイン
+  const [user, setUser] = useState(undefined);
 
-  //Firebaseからデータを取得
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "books"));
-        const booksData = querySnapshot.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        }));
-        setBooks(booksData);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBooks();
-  }, []);
+  useEffect(() => onAuthStateChanged(auth, setUser), []);
+
+  if (user === undefined) return <Loading />;
+  if (!user) return <Login />;
+  // ユーザーが変わったら状態をリセットする
+  return <ReadingLog key={user.uid} user={user} />;
+}
+
+function ReadingLog({ user }) {
+  const [page, setPage] = useState("一覧");
+  const { books, loading, error, addBook, updateBook, deleteBook } = useBooks(user.uid);
+  const [notification, setNotification] = useState({ open: false, message: "", severity: "success" }); // 通知設定
 
   //通知を表示するヘルパー関数
   const showNotification = (message, severity = "success") => {
     setNotification({ open: true, message, severity });
   };
 
-  //追加機能
-  const handleAddBook = async (newBook) => {
+  // 成功・失敗の通知付きで実行。成功したら true を返す
+  const run = async (action, successMessage, errorMessage, severity) => {
     try {
-      const docRef = await addDoc(collection(db, "books"), newBook);
-      setBooks([...books, { ...newBook, id: docRef.id }]);
-      showNotification("本を登録しました！");
+      await action();
+      showNotification(successMessage, severity);
+      return true;
     } catch (e) {
-      showNotification("登録に失敗しました", "error");
+      console.error(e);
+      showNotification(errorMessage, "error");
+      return false;
     }
   };
 
-  //削除機能
-  const handleDeleteBook = async (id) => {
-    try {
-      await deleteDoc(doc(db, "books", id));
-      setBooks(books.filter((b) => b.id !== id));
-      showNotification("削除しました", "info");
-    } catch (e) {
-      showNotification("削除に失敗しました", "error");
-    }
-  };
-
-  //更新機能
-  const handleUpdateBook = async (id, updatedBook) => {
-    try {
-      await updateDoc(doc(db, "books", id), updatedBook);
-      setBooks(books.map((b) => (b.id === id ? { ...updatedBook, id } : b)));
-      showNotification("変更を保存しました！");
-    } catch (e) {
-      showNotification("更新に失敗しました", "error");
-    }
-  };
+  const handleAddBook = (book) => run(() => addBook(book), "本を登録しました！", "登録に失敗しました");
+  const handleUpdateBook = (id, book) => run(() => updateBook(id, book), "変更を保存しました！", "更新に失敗しました");
+  const handleDeleteBook = (id) => run(() => deleteBook(id), "削除しました", "削除に失敗しました", "info");
 
   return (
     <Box sx={{ bgcolor: "#f5f5f5", minHeight: "100vh", pb: 4 }}>
-      <Navbar currentPage={page} setCurrentPage={setPage} />
+      <Navbar currentPage={page} setCurrentPage={setPage} user={user} onLogout={() => signOut(auth)} />
 
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        
+      <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 } }}>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>データの読み込みに失敗しました。再読み込みしてください。</Alert>}
         {loading ? (
-          <Box display="flex" justifyContent="center" mt={10}>
-            <CircularProgress />
-          </Box>
+          <Loading />
         ) : (
           <>
             {page === "一覧" && (
               <>
                 <BookForm onAdd={handleAddBook} />
-                <BookList 
-                  books={books} 
-                  onDelete={handleDeleteBook} 
-                  onUpdate={handleUpdateBook} 
+                <BookList
+                  books={books}
+                  onDelete={handleDeleteBook}
+                  onUpdate={handleUpdateBook}
                 />
               </>
             )}
-            {page === "統計" && <Statistics books={books} />}
+            {page === "統計" && (
+              <Suspense fallback={<Loading />}>
+                <Statistics books={books} />
+              </Suspense>
+            )}
           </>
         )}
       </Container>
 
-
-      <Snackbar 
-        open={notification.open} 
-        autoHideDuration={4000} 
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={4000}
         onClose={() => setNotification({ ...notification, open: false })}
       >
         <Alert severity={notification.severity} sx={{ width: '100%' }}>
